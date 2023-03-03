@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 import { View } from 'react-native';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, LocationObject, watchPositionAsync, LocationAccuracy } from 'expo-location'
@@ -7,6 +7,8 @@ import { stylesGlobal } from './styles/global';
 
 export default function App() { 
   const [location, setLocation] = useState<LocationObject | null>(null);
+
+  const mapRef = useRef<MapView>(null);
 
   async function requestLocationPermission() {
     const { granted } = await requestForegroundPermissionsAsync();
@@ -26,8 +28,11 @@ export default function App() {
        timeInterval: 1000,
        distanceInterval: 1,
      }, (location) => {
-       console.log("NOVA LOCALIZAÇÃO", location);
        setLocation(location);
+       mapRef.current?.animateCamera({
+         pitch: 70,
+         center: location.coords
+       });
     });
   }, []);
 
@@ -36,6 +41,7 @@ export default function App() {
       {
         location &&
         <MapView
+          ref={mapRef}
           style={stylesGlobal.map}
           initialRegion={{
             latitude: location.coords.latitude,
